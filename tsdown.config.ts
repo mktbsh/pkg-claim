@@ -6,6 +6,7 @@ export default defineConfig({
   },
   format: ["esm"],
   target: "node24",
+  fixedExtension: false,
   outDir: "bin",
   minify: true,
 });
