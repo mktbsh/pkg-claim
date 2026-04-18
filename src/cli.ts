@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 import {
-  intro,
-  outro,
-  text,
-  confirm,
-  spinner,
-  isCancel,
   cancel,
+  confirm,
+  intro,
+  isCancel,
+  outro,
+  spinner,
+  text,
 } from "@clack/prompts";
 import { ensureCommandAvailable, readCommandText } from "./command.ts";
+import { publish } from "./publish.ts";
 import { checkAvailability } from "./registry.ts";
 import { createTempPackage, removeTempPackage } from "./scaffold.ts";
-import { publish } from "./publish.ts";
 
 const dryRun = process.argv.includes("--dry-run");
 
@@ -21,6 +21,10 @@ async function getGitConfig(key: string): Promise<string> {
   } catch {
     return "";
   }
+}
+
+function errorLog(message: string): void {
+  console.error(`Error: ${message}`);
 }
 
 function validatePackageName(name: string): string | undefined {
@@ -41,7 +45,7 @@ async function checkNpmInstalled(): Promise<void> {
   try {
     await ensureCommandAvailable("npm");
   } catch {
-    console.error("Error: npm is not installed or not in PATH");
+    errorLog("npm is not installed or not in PATH");
     process.exit(1);
   }
 }
@@ -69,7 +73,7 @@ async function main() {
     available = await checkAvailability(name);
   } catch (err) {
     s.stop("Failed to check availability");
-    console.error(`Error: ${(err as Error).message}`);
+    errorLog((err as Error).message);
     process.exit(1);
   }
   if (!available) {
@@ -111,13 +115,15 @@ async function main() {
     author: authorInput as string,
   };
 
-  console.log("\n── Preview ──────────────────────────────");
-  console.log(`  name:        ${meta.name}`);
-  console.log(`  version:     ${meta.version}`);
-  console.log(`  description: ${meta.description}`);
-  console.log(`  license:     ${meta.license}`);
-  console.log(`  author:      ${meta.author}`);
-  console.log("─────────────────────────────────────────\n");
+  const log = (message: string): void => console.log(message);
+
+  log(`\n── Preview ${"─".repeat(30)}`);
+  log(`  name:        ${meta.name}`);
+  log(`  version:     ${meta.version}`);
+  log(`  description: ${meta.description}`);
+  log(`  license:     ${meta.license}`);
+  log(`  author:      ${meta.author}`);
+  log("─".repeat(40) + "\n");
 
   if (dryRun) {
     outro("Dry-run: skipping publish");
@@ -136,7 +142,7 @@ async function main() {
     await publish({ dir, dryRun: false });
     outro(`Published ${meta.name}@${meta.version}`);
   } catch (err) {
-    console.error(`\nPublish failed:\n${(err as Error).message}`);
+    errorLog(`\nPublish failed:\n${(err as Error).message}`);
     process.exit(1);
   } finally {
     if (dir) await removeTempPackage(dir);
