@@ -8,6 +8,7 @@ import {
   isCancel,
   cancel,
 } from "@clack/prompts";
+import { ensureCommandAvailable, readCommandText } from "./command.ts";
 import { checkAvailability } from "./registry.ts";
 import { createTempPackage, removeTempPackage } from "./scaffold.ts";
 import { publish } from "./publish.ts";
@@ -16,7 +17,7 @@ const dryRun = process.argv.includes("--dry-run");
 
 async function getGitConfig(key: string): Promise<string> {
   try {
-    return (await Bun.$`git config ${key}`.quiet().text()).trim();
+    return await readCommandText("git", ["config", key]);
   } catch {
     return "";
   }
@@ -37,8 +38,9 @@ function validatePackageName(name: string): string | undefined {
 }
 
 async function checkNpmInstalled(): Promise<void> {
-  const result = await Bun.$`npm --version`.quiet().nothrow();
-  if (result.exitCode !== 0) {
+  try {
+    await ensureCommandAvailable("npm");
+  } catch {
     console.error("Error: npm is not installed or not in PATH");
     process.exit(1);
   }

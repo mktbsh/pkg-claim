@@ -1,3 +1,5 @@
+import { runCommand } from "./command";
+
 export interface PublishOptions {
   dir: string;
   dryRun: boolean;
@@ -14,8 +16,10 @@ export async function publish(
 }
 
 const defaultCmd: Commander = async (args, cwd) => {
-  const result = await Bun.$`npm ${args}`.cwd(cwd).nothrow();
+  const result = await runCommand("npm", args, cwd);
   if (result.exitCode !== 0) {
-    throw new Error(result.stderr.toString());
+    throw new Error(
+      result.stderr.trim() || `npm publish failed with exit code ${result.exitCode}`
+    );
   }
 };
