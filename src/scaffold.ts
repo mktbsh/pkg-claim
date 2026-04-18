@@ -1,6 +1,6 @@
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { mkdtemp, rm } from "node:fs/promises";
 
 export interface PackageMeta {
   name: string;
@@ -13,7 +13,7 @@ export interface PackageMeta {
 export async function createTempPackage(meta: PackageMeta): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), "pkg-claim-"));
 
-  await Bun.write(
+  await writeFile(
     join(dir, "package.json"),
     JSON.stringify(
       {
@@ -27,10 +27,11 @@ export async function createTempPackage(meta: PackageMeta): Promise<string> {
       },
       null,
       2
-    ) + "\n"
+    ) + "\n",
+    "utf8"
   );
 
-  await Bun.write(join(dir, "index.js"), "export {};\n");
+  await writeFile(join(dir, "index.js"), "export {};\n", "utf8");
 
   return dir;
 }
