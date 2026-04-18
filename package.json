@@ -1,0 +1,19 @@
+{
+  "name": "pkg-claim",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Reserve an npm package name by publishing a minimal stub",
+  "bin": {
+    "pkg-claim": "./src/cli.ts"
+  },
+  "files": ["src/"],
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.9.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
