@@ -4,16 +4,25 @@
   "type": "module",
   "description": "Reserve an npm package name by publishing a minimal stub",
   "bin": {
-    "pkg-claim": "./src/cli.ts"
+    "pkg-claim": "./bin/pkg-claim.js"
   },
-  "files": ["src/"],
+  "files": ["bin/"],
   "scripts": {
-    "test": "bun test"
+    "build": "tsdown",
+    "test": "bun test",
+    "typecheck": "bunx tsc --noEmit",
+    "prepublishOnly": "bun run build"
   },
   "dependencies": {
     "@clack/prompts": "^0.9.0"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/node": "latest",
+    "tsdown": "latest",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=24"
   }
 }
