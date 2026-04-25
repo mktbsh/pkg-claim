@@ -286,8 +286,8 @@ export async function runPkgClaim(argv: string[], deps: AppDeps = {}): Promise<n
     if (dir) {
       try {
         await resolvedDeps.removeTempPackage(dir);
-      } catch {
-        // Preserve the publish result if cleanup fails.
+      } catch (err) {
+        resolvedDeps.stderr.write(`Warning: Cleanup failed: ${(err as Error).message}\n`);
       }
     }
   }

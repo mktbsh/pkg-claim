@@ -19,6 +19,7 @@ function createTestDeps() {
         },
       },
       stdinIsTTY: false,
+      readCommandText: async () => "",
     },
     getStdout() {
       return stdout.join("");
@@ -124,6 +125,7 @@ test("runPkgClaim keeps publish failure surfaced when cleanup also fails", async
   const deps = {
     ...baseDeps,
     ensureCommandAvailable: async () => {},
+    readCommandText: async () => "",
     checkAvailability: async () => true,
     spinner: () => ({
       start() {},
@@ -143,6 +145,7 @@ test("runPkgClaim keeps publish failure surfaced when cleanup also fails", async
   expect(calls.removedDirs).toEqual(["stub-dir"]);
   expect(getStdout()).toBe("");
   expect(getStderr()).toContain("Error: Publish failed: publish boom\n");
+  expect(getStderr()).toContain("Warning: Cleanup failed: cleanup boom\n");
 });
 
 test("runPkgClaim keeps successful publish result when cleanup also fails", async () => {
@@ -154,6 +157,7 @@ test("runPkgClaim keeps successful publish result when cleanup also fails", asyn
   const deps = {
     ...baseDeps,
     ensureCommandAvailable: async () => {},
+    readCommandText: async () => "",
     checkAvailability: async () => true,
     spinner: () => ({
       start() {},
@@ -171,4 +175,5 @@ test("runPkgClaim keeps successful publish result when cleanup also fails", asyn
   expect(calls.removedDirs).toEqual(["stub-dir"]);
   expect(getStdout()).toBe("my-pkg@0.0.1\n");
   expect(getStderr()).toContain("name:        my-pkg");
+  expect(getStderr()).toContain("Warning: Cleanup failed: cleanup boom\n");
 });
