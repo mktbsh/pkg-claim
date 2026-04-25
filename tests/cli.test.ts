@@ -114,3 +114,61 @@ test("runPkgClaim performs the non-interactive publish flow for a valid invocati
   expect(getStdout()).toBe("my-pkg@0.0.1\n");
   expect(getStderr()).toContain("name:        my-pkg");
 });
+
+test("runPkgClaim keeps publish failure surfaced when cleanup also fails", async () => {
+  const { deps: baseDeps, getStdout, getStderr } = createTestDeps();
+  const calls = {
+    removedDirs: [] as string[],
+  };
+
+  const deps = {
+    ...baseDeps,
+    ensureCommandAvailable: async () => {},
+    checkAvailability: async () => true,
+    spinner: () => ({
+      start() {},
+      stop() {},
+    }),
+    createTempPackage: async () => "stub-dir",
+    publish: async () => {
+      throw new Error("publish boom");
+    },
+    removeTempPackage: async (dir: string) => {
+      calls.removedDirs.push(dir);
+      throw new Error("cleanup boom");
+    },
+  } satisfies AppDeps;
+
+  await expect(runPkgClaim(["--no-input", "--name", "my-pkg", "--yes"], deps)).resolves.toBe(1);
+  expect(calls.removedDirs).toEqual(["stub-dir"]);
+  expect(getStdout()).toBe("");
+  expect(getStderr()).toContain("Error: Publish failed: publish boom\n");
+});
+
+test("runPkgClaim keeps successful publish result when cleanup also fails", async () => {
+  const { deps: baseDeps, getStdout, getStderr } = createTestDeps();
+  const calls = {
+    removedDirs: [] as string[],
+  };
+
+  const deps = {
+    ...baseDeps,
+    ensureCommandAvailable: async () => {},
+    checkAvailability: async () => true,
+    spinner: () => ({
+      start() {},
+      stop() {},
+    }),
+    createTempPackage: async () => "stub-dir",
+    publish: async () => {},
+    removeTempPackage: async (dir: string) => {
+      calls.removedDirs.push(dir);
+      throw new Error("cleanup boom");
+    },
+  } satisfies AppDeps;
+
+  await expect(runPkgClaim(["--no-input", "--name", "my-pkg", "--yes"], deps)).resolves.toBe(0);
+  expect(calls.removedDirs).toEqual(["stub-dir"]);
+  expect(getStdout()).toBe("my-pkg@0.0.1\n");
+  expect(getStderr()).toContain("name:        my-pkg");
+});

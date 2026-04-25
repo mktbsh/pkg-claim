@@ -271,6 +271,7 @@ export async function runPkgClaim(argv: string[], deps: AppDeps = {}): Promise<n
   }
 
   let dir: string | undefined;
+  let exitCode = 0;
   try {
     dir = await resolvedDeps.createTempPackage(meta);
     await resolvedDeps.publish({ dir, dryRun: false });
@@ -279,12 +280,17 @@ export async function runPkgClaim(argv: string[], deps: AppDeps = {}): Promise<n
     } else {
       resolvedDeps.stdout.write(`${meta.name}@${meta.version}\n`);
     }
-    return 0;
   } catch (err) {
-    return writeError(resolvedDeps.stderr, `Publish failed: ${(err as Error).message}`);
+    exitCode = writeError(resolvedDeps.stderr, `Publish failed: ${(err as Error).message}`);
   } finally {
     if (dir) {
-      await resolvedDeps.removeTempPackage(dir);
+      try {
+        await resolvedDeps.removeTempPackage(dir);
+      } catch {
+        // Preserve the publish result if cleanup fails.
+      }
     }
   }
+
+  return exitCode;
 }
