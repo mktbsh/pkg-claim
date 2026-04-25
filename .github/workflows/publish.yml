@@ -27,7 +27,6 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
-          provenance: true
 
       - name: Install dependencies
         run: bun install --frozen-lockfile

@@ -38,7 +38,6 @@ test("publish workflow uses changesets and npm trusted publishing", async () => 
   expect(workflow).toContain("uses: actions/setup-node@v4");
   expect(workflow).toContain("node-version: 24");
   expect(workflow).toContain("registry-url: https://registry.npmjs.org");
-  expect(workflow).toContain("provenance: true");
   expect(workflow).toContain("uses: changesets/action@v1");
   expect(workflow).toContain("version: bun run version-packages");
   expect(workflow).toContain("publish: bun run release");
