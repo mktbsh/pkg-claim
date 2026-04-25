@@ -16,14 +16,20 @@ export function requireNonInteractivePublishConfirmation(options: {
   confirmName?: string;
   dryRun?: boolean;
   noInput?: boolean;
+  isInteractive?: boolean;
 }): void {
-  const { name, confirmName, dryRun, noInput } = options;
+  const { name, confirmName, dryRun, noInput, isInteractive } = options;
 
-  if (!noInput || dryRun) return;
+  if (dryRun) return;
+
+  const interactive = isInteractive ?? !noInput;
+  if (interactive) return;
 
   if (!confirmName) {
     throw new Error(
-      "--confirm-name <package-name> is required when publishing with --no-input."
+      noInput
+        ? "--confirm-name <package-name> is required when publishing with --no-input."
+        : "--confirm-name <package-name> is required in non-interactive mode."
     );
   }
 

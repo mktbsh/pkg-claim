@@ -56,6 +56,17 @@ test("requireNonInteractivePublishConfirmation throws when noInput and missing c
   );
 });
 
+test("requireNonInteractivePublishConfirmation throws when non-interactive without --no-input and missing confirmName", () => {
+  expect(() =>
+    requireNonInteractivePublishConfirmation({
+      name: "pkg",
+      dryRun: false,
+      noInput: false,
+      isInteractive: false,
+    })
+  ).toThrow("--confirm-name <package-name> is required in non-interactive mode.");
+});
+
 test("requireNonInteractivePublishConfirmation throws when names do not match", () => {
   expect(() =>
     requireNonInteractivePublishConfirmation({

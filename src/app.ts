@@ -303,12 +303,21 @@ export async function runPkgClaim(argv: string[], deps: AppDeps = {}): Promise<n
       confirmName: args.confirmName,
       dryRun: args.dryRun,
       noInput: args.noInput,
+      isInteractive,
     });
   } catch (err) {
     return writeError(resolvedDeps.stderr, (err as Error).message);
   }
 
   if (isInteractive) {
+    if (!args.yes) {
+      const confirmed = await resolvedDeps.confirm({ message: "Publish?" });
+      if (resolvedDeps.isCancel(confirmed) || !confirmed) {
+        resolvedDeps.cancel("Cancelled");
+        return 0;
+      }
+    }
+
     const confirmedName = await resolvedDeps.text({
       message: "Type the package name to confirm publish",
       placeholder: name,

@@ -164,6 +164,40 @@ test("runPkgClaim rejects non-interactive publish without --confirm-name", async
   );
 });
 
+test("runPkgClaim rejects publish without --confirm-name when stdin is not a TTY", async () => {
+  const { deps: baseDeps, getStdout, getStderr } = createTestDeps();
+  const calls = {
+    created: 0,
+    published: 0,
+  };
+
+  const deps = {
+    ...baseDeps,
+    ensureCommandAvailable: async () => {},
+    readCommandText: async (command: string, args: string[]) => {
+      if (command === "npm" && args[0] === "whoami") return "alice";
+      return "";
+    },
+    checkAvailability: async () => true,
+    spinner: quietSpinner,
+    createTempPackage: async () => {
+      calls.created += 1;
+      return "stub-dir";
+    },
+    publish: async () => {
+      calls.published += 1;
+    },
+  } satisfies AppDeps;
+
+  await expect(runPkgClaim(["--name", "my-pkg", "--yes"], deps)).resolves.toBe(1);
+  expect(calls.created).toBe(0);
+  expect(calls.published).toBe(0);
+  expect(getStdout()).toBe("");
+  expect(getStderr()).toContain(
+    "Error: --confirm-name <package-name> is required in non-interactive mode.\n"
+  );
+});
+
 test("runPkgClaim rejects non-interactive publish with mismatched --confirm-name", async () => {
   const { deps: baseDeps, getStdout, getStderr } = createTestDeps();
   const calls = {
@@ -347,6 +381,7 @@ test("runPkgClaim cancels interactive publish when typed package name does not m
 test("runPkgClaim publishes interactively when typed package name matches", async () => {
   const { deps: baseDeps, getStdout, getStderr } = createTestDeps();
   const calls = {
+    prompts: [] as string[],
     created: [] as Array<{
       name: string;
       version: string;
@@ -374,7 +409,12 @@ test("runPkgClaim publishes interactively when typed package name matches", asyn
       calls.outros.push(message ?? "");
     },
     cancel() {},
+    confirm: async ({ message }) => {
+      calls.prompts.push(`confirm:${message}`);
+      return true;
+    },
     text: async ({ message }) => {
+      calls.prompts.push(`text:${message}`);
       if (message === "Type the package name to confirm publish") {
         return "my-pkg";
       }
@@ -406,11 +446,14 @@ test("runPkgClaim publishes interactively when typed package name matches", asyn
         "MIT",
         "--author",
         "Alice",
-        "--yes",
       ],
       deps
     )
   ).resolves.toBe(0);
+  expect(calls.prompts).toEqual([
+    "confirm:Publish?",
+    "text:Type the package name to confirm publish",
+  ]);
   expect(calls.created).toEqual([
     {
       name: "my-pkg",
