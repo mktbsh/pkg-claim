@@ -36,3 +36,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # local git worktrees
 .worktrees/
+
+# agent session artifacts
+docs/superpowers/

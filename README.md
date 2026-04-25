@@ -4,7 +4,7 @@ Reserve an npm package name by publishing a minimal stub package.
 
 ## Requirements
 
-- Node.js 24+ or Bun
+- Node.js 24+ for the built CLI, or Bun for local development
 - npm authentication (`npm login`)
 
 If your npm account requires 2FA, security-key, or browser authentication for
@@ -46,6 +46,13 @@ bun install
 bun test
 bun run typecheck
 bun run build
+bun run check
+```
+
+Create a changeset for user-facing changes before merging to `main`:
+
+```bash
+bun run changeset
 ```
 
 ## Release process
@@ -55,4 +62,5 @@ bun run build
 3. GitHub Actions opens or updates a release PR with the pending version bump.
 4. Merge that release PR to publish `pkg-claim` to npm automatically.
 
-The publish workflow uses npm Trusted Publishing from GitHub Actions, so the npm package must be configured to trust this repository before the first automated release.
+The publish workflow uses npm Trusted Publishing from GitHub Actions, so npm
+must be configured to trust this repository before the first automated release.
