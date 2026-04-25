@@ -25,6 +25,12 @@ Preview the flow without publishing:
 npx pkg-claim --dry-run
 ```
 
+Publish non-interactively after confirming the exact package name:
+
+```bash
+npx pkg-claim --name my-package --yes --confirm-name my-package
+```
+
 You can also run the built artifact locally:
 
 ```bash
@@ -36,8 +42,9 @@ bun bin/pkg-claim.js --dry-run
 
 1. Checks whether the package name is available on npm
 2. Prompts for description, license, and author
-3. Creates a temporary minimal package
-4. Publishes it to npm, or stops before publish in `--dry-run` mode
+3. Confirms the active npm account before any real publish
+4. Shows a final publish confirmation and requires the exact package name before publish
+5. Creates a temporary minimal package and publishes it to npm, or stops before publish in `--dry-run` mode
 
 ## Development
 
