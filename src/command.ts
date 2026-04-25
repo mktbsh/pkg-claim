@@ -12,6 +12,12 @@ export type CommandExecutor = (
   cwd?: string
 ) => Promise<CommandResult>;
 
+export type InteractiveCommandExecutor = (
+  command: string,
+  args: string[],
+  cwd?: string
+) => Promise<number>;
+
 export async function runCommand(
   command: string,
   args: string[],
@@ -48,6 +54,15 @@ export async function ensureCommandAvailable(
   }
 }
 
+export async function runInteractiveCommand(
+  command: string,
+  args: string[],
+  cwd?: string,
+  executor: InteractiveCommandExecutor = defaultInteractiveExecutor
+): Promise<number> {
+  return executor(command, args, cwd);
+}
+
 const defaultExecutor: CommandExecutor = async (command, args, cwd) =>
   await new Promise<CommandResult>((resolve, reject) => {
     const child = spawn(command, args, {
@@ -74,5 +89,23 @@ const defaultExecutor: CommandExecutor = async (command, args, cwd) =>
         stdout,
         stderr,
       });
+    });
+  });
+
+const defaultInteractiveExecutor: InteractiveCommandExecutor = async (
+  command,
+  args,
+  cwd
+) =>
+  await new Promise<number>((resolve, reject) => {
+    const child = spawn(command, args, {
+      cwd,
+      stdio: "inherit",
+    });
+
+    child.on("error", reject);
+
+    child.on("close", (code) => {
+      resolve(code ?? 1);
     });
   });

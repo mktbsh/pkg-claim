@@ -1,4 +1,4 @@
-import { runCommand } from "./command";
+import { runInteractiveCommand } from "./command";
 
 export interface PublishOptions {
   dir: string;
@@ -16,10 +16,8 @@ export async function publish(
 }
 
 const defaultCmd: Commander = async (args, cwd) => {
-  const result = await runCommand("npm", args, cwd);
-  if (result.exitCode !== 0) {
-    throw new Error(
-      result.stderr.trim() || `npm publish failed with exit code ${result.exitCode}`
-    );
+  const exitCode = await runInteractiveCommand("npm", args, cwd);
+  if (exitCode !== 0) {
+    throw new Error(`npm publish failed with exit code ${exitCode}`);
   }
 };
