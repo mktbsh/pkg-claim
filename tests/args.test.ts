@@ -83,6 +83,22 @@ test("HELP contains --confirm-name <name>", () => {
   expect(HELP).toContain("--confirm-name <name>");
 });
 
+test("HELP describes --yes as skipping the final confirmation prompt", () => {
+  expect(HELP).toContain("-y, --yes             Skip the final confirmation prompt");
+});
+
+test("HELP describes --no-input as requiring name and confirm-name for real publish", () => {
+  expect(HELP).toContain(
+    "--no-input            Disable all prompts; real publish requires --name and --confirm-name"
+  );
+});
+
+test("HELP non-interactive example includes --no-input and --confirm-name", () => {
+  expect(HELP).toContain(
+    "$ pkg-claim --no-input --name my-cool-pkg --confirm-name my-cool-pkg --yes"
+  );
+});
+
 // --- validatePackageName ---
 
 test("returns undefined for valid simple name", () => {

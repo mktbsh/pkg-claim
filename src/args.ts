@@ -25,8 +25,8 @@ OPTIONS
   --author <name>       Author (defaults to git config user)
   --confirm-name <name> Exact package name confirmation for real publish
   -n, --dry-run         Simulate publish without actually publishing
-  -y, --yes             Skip the confirmation prompt
-  --no-input            Disable all prompts; requires --name
+  -y, --yes             Skip the final confirmation prompt
+  --no-input            Disable all prompts; real publish requires --name and --confirm-name
   -v, --version         Show version
   -h, --help            Show this help
 
@@ -35,7 +35,7 @@ EXAMPLES
   $ pkg-claim
 
   # Non-interactive
-  $ pkg-claim --name my-cool-pkg --description "My package" --yes
+  $ pkg-claim --no-input --name my-cool-pkg --confirm-name my-cool-pkg --yes
 
   # Check availability without publishing
   $ pkg-claim --name my-cool-pkg --dry-run

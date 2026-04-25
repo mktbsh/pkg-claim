@@ -41,7 +41,7 @@ bun bin/pkg-claim.js --dry-run
 ## What it does
 
 1. Ensures npm is installed
-2. Confirms the active npm account before any real publish
+2. Verifies npm authentication before any real publish
 3. Checks whether the package name is available on npm
 4. Prompts for description, license, and author
 5. Shows a final publish confirmation, requires the exact package name, and publishes a temporary minimal package to npm (or stops before publish in `--dry-run` mode)
