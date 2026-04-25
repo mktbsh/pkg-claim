@@ -8,7 +8,15 @@ import {
   text as promptText,
 } from "@clack/prompts";
 import { HELP, parseCliArgs, validatePackageName } from "./args.ts";
-import { ensureCommandAvailable, readCommandText } from "./command.ts";
+import {
+  ensureCommandAvailable,
+  readCommandText,
+  type CommandExecutor,
+} from "./command.ts";
+import {
+  getNpmIdentity,
+  requireNonInteractivePublishConfirmation,
+} from "./preflight.ts";
 import { publish, type PublishOptions } from "./publish.ts";
 import { checkAvailability } from "./registry.ts";
 import {
@@ -107,6 +115,25 @@ async function getGitConfig(key: string, deps: ResolvedAppDeps): Promise<string>
   }
 }
 
+function createReadExecutor(deps: ResolvedAppDeps): CommandExecutor {
+  return async (command, args) => {
+    try {
+      const stdout = await deps.readCommandText(command, args);
+      return {
+        exitCode: 0,
+        stdout,
+        stderr: "",
+      };
+    } catch (err) {
+      return {
+        exitCode: 1,
+        stdout: "",
+        stderr: (err as Error).message,
+      };
+    }
+  };
+}
+
 function printPreview(meta: PackageMeta, isInteractive: boolean, deps: ResolvedAppDeps): void {
   const out = isInteractive ? deps.stdout : deps.stderr;
   out.write(`\n── Preview ${"─".repeat(30)}\n`);
@@ -170,6 +197,14 @@ export async function runPkgClaim(argv: string[], deps: AppDeps = {}): Promise<n
       return 0;
     }
     name = input as string;
+  }
+
+  if (!args.dryRun) {
+    try {
+      await getNpmIdentity(createReadExecutor(resolvedDeps));
+    } catch (err) {
+      return writeError(resolvedDeps.stderr, (err as Error).message);
+    }
   }
 
   const availabilitySpinner = resolvedDeps.spinner();
@@ -255,18 +290,32 @@ export async function runPkgClaim(argv: string[], deps: AppDeps = {}): Promise<n
     return 0;
   }
 
-  if (!args.yes) {
-    if (isInteractive) {
-      const confirmed = await resolvedDeps.confirm({ message: "Publish?" });
-      if (resolvedDeps.isCancel(confirmed) || !confirmed) {
-        resolvedDeps.cancel("Cancelled");
-        return 0;
-      }
-    } else {
-      return writeError(
-        resolvedDeps.stderr,
-        "Pass --yes to confirm publishing, or --dry-run to preview."
-      );
+  if (!isInteractive && !args.yes) {
+    return writeError(
+      resolvedDeps.stderr,
+      "Pass --yes to confirm publishing, or --dry-run to preview."
+    );
+  }
+
+  try {
+    requireNonInteractivePublishConfirmation({
+      name,
+      confirmName: args.confirmName,
+      dryRun: args.dryRun,
+      noInput: args.noInput,
+    });
+  } catch (err) {
+    return writeError(resolvedDeps.stderr, (err as Error).message);
+  }
+
+  if (isInteractive) {
+    const confirmedName = await resolvedDeps.text({
+      message: "Type the package name to confirm publish",
+      placeholder: name,
+    });
+    if (resolvedDeps.isCancel(confirmedName) || confirmedName !== name) {
+      resolvedDeps.cancel("Cancelled");
+      return 0;
     }
   }
 
