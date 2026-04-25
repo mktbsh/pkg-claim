@@ -5,6 +5,7 @@ export interface CliArgs {
   description?: string;
   license?: string;
   author?: string;
+  confirmName?: string;
   dryRun: boolean;
   yes: boolean;
   noInput: boolean;
@@ -22,6 +23,7 @@ OPTIONS
   --description <text>  Package description
   --license <spdx>      License identifier (default: MIT)
   --author <name>       Author (defaults to git config user)
+  --confirm-name <name> Exact package name confirmation for real publish
   -n, --dry-run         Simulate publish without actually publishing
   -y, --yes             Skip the confirmation prompt
   --no-input            Disable all prompts; requires --name
@@ -47,6 +49,7 @@ export function parseCliArgs(argv: string[]): CliArgs {
       description: { type: "string" },
       license: { type: "string" },
       author: { type: "string" },
+      "confirm-name": { type: "string" },
       "dry-run": { type: "boolean", short: "n" },
       yes: { type: "boolean", short: "y" },
       "no-input": { type: "boolean" },
@@ -61,6 +64,7 @@ export function parseCliArgs(argv: string[]): CliArgs {
     description: values.description,
     license: values.license,
     author: values.author,
+    confirmName: values["confirm-name"],
     dryRun: values["dry-run"] ?? false,
     yes: values.yes ?? false,
     noInput: values["no-input"] ?? false,

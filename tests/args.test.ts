@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { parseCliArgs, validatePackageName } from "../src/args";
+import { parseCliArgs, validatePackageName, HELP } from "../src/args";
 
 // --- parseCliArgs ---
 
@@ -10,6 +10,7 @@ test("defaults: all booleans false, strings undefined", () => {
     description: undefined,
     license: undefined,
     author: undefined,
+    confirmName: undefined,
     dryRun: false,
     yes: false,
     noInput: false,
@@ -72,6 +73,14 @@ test("-h sets help (short flag)", () => {
 
 test("throws on unknown flag", () => {
   expect(() => parseCliArgs(["--unknown"])).toThrow();
+});
+
+test("--confirm-name sets confirmName", () => {
+  expect(parseCliArgs(["--confirm-name", "my-pkg"]).confirmName).toBe("my-pkg");
+});
+
+test("HELP contains --confirm-name <name>", () => {
+  expect(HELP).toContain("--confirm-name <name>");
 });
 
 // --- validatePackageName ---
