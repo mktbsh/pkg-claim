@@ -47,3 +47,12 @@ bun test
 bun run typecheck
 bun run build
 ```
+
+## Release process
+
+1. Run `bun run changeset` in a feature branch and commit the generated `.changeset/*.md` file.
+2. Merge the feature PR into `main`.
+3. GitHub Actions opens or updates a release PR with the pending version bump.
+4. Merge that release PR to publish `pkg-claim` to npm automatically.
+
+The publish workflow uses npm Trusted Publishing from GitHub Actions, so the npm package must be configured to trust this repository before the first automated release.
