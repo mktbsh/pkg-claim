@@ -17,6 +17,8 @@ bun install          # 依存インストール
 bun run build        # tsdown でビルド → bin/pkg-claim.js
 bun test             # テスト実行
 bun run typecheck    # 型チェック（bunx tsc --noEmit）
+bun run check        # test + typecheck + build
+bun run changeset    # 変更内容の release note を追加
 ```
 
 ## アーキテクチャ
@@ -43,3 +45,14 @@ import { test, expect } from "bun:test";
 ```
 
 モック executor を渡してコマンド実行をスタブ化する。実際に `npm publish` は呼ばない。
+
+## Changesets / release 運用
+
+- npm に公開される変更を含む PR では `bun run changeset` を実行し、生成された `.changeset/*.md` をコミットする
+- docs のみ、内部実装のみ、テストのみなど公開物に影響しない変更では通常 changeset は不要
+- `package.json` の `version` は手動で上げず、Changesets の release PR に更新させる
+- `main` へ changeset が入ると GitHub Actions が release PR を作成または更新し、その PR を merge すると npm publish が走る
+
+## セッション成果物
+
+- `docs/superpowers/` はエージェントの spec / plan 置き場として扱い、コミットしない
