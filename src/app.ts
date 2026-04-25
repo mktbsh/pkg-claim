@@ -171,20 +171,23 @@ export async function runPkgClaim(argv: string[], deps: AppDeps = {}): Promise<n
     return writeUsageError(resolvedDeps.stderr, "--name is required in non-interactive mode.");
   }
 
-  try {
-    await resolvedDeps.ensureCommandAvailable("npm");
-  } catch {
-    return writeError(resolvedDeps.stderr, "npm is not installed or not in PATH");
+  if (args.name) {
+    const nameError = validatePackageName(args.name);
+    if (nameError) return writeError(resolvedDeps.stderr, nameError);
   }
 
   if (isInteractive) {
+    try {
+      await resolvedDeps.ensureCommandAvailable("npm");
+    } catch {
+      return writeError(resolvedDeps.stderr, "npm is not installed or not in PATH");
+    }
+
     resolvedDeps.intro("pkg-claim — reserve an npm package name");
   }
 
   let name: string;
   if (args.name) {
-    const nameError = validatePackageName(args.name);
-    if (nameError) return writeError(resolvedDeps.stderr, nameError);
     name = args.name;
   } else {
     const input = await resolvedDeps.text({
@@ -199,16 +202,33 @@ export async function runPkgClaim(argv: string[], deps: AppDeps = {}): Promise<n
     name = input as string;
   }
 
-  try {
-    requireNonInteractivePublishConfirmation({
-      name,
-      confirmName: args.confirmName,
-      dryRun: args.dryRun,
-      noInput: args.noInput,
-      isInteractive,
-    });
-  } catch (err) {
-    return writeError(resolvedDeps.stderr, (err as Error).message);
+  if (!isInteractive && !args.dryRun) {
+    try {
+      requireNonInteractivePublishConfirmation({
+        name,
+        confirmName: args.confirmName,
+        dryRun: args.dryRun,
+        noInput: args.noInput,
+        isInteractive,
+      });
+    } catch (err) {
+      return writeError(resolvedDeps.stderr, (err as Error).message);
+    }
+
+    if (!args.yes) {
+      return writeError(
+        resolvedDeps.stderr,
+        "Pass --yes to confirm publishing, or --dry-run to preview."
+      );
+    }
+  }
+
+  if (!isInteractive) {
+    try {
+      await resolvedDeps.ensureCommandAvailable("npm");
+    } catch {
+      return writeError(resolvedDeps.stderr, "npm is not installed or not in PATH");
+    }
   }
 
   if (!args.dryRun) {
@@ -300,13 +320,6 @@ export async function runPkgClaim(argv: string[], deps: AppDeps = {}): Promise<n
       resolvedDeps.stderr.write("Dry-run: skipping publish\n");
     }
     return 0;
-  }
-
-  if (!isInteractive && !args.yes) {
-    return writeError(
-      resolvedDeps.stderr,
-      "Pass --yes to confirm publishing, or --dry-run to preview."
-    );
   }
 
   if (isInteractive) {

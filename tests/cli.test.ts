@@ -253,6 +253,52 @@ test("runPkgClaim rejects non-interactive publish with mismatched --confirm-name
   expect(getStderr()).not.toContain("Preview");
 });
 
+test("runPkgClaim rejects non-interactive publish without --yes before side effects", async () => {
+  const { deps: baseDeps, getStdout, getStderr } = createTestDeps();
+  const calls = {
+    ensuredCommands: 0,
+    readCommands: [] as Array<{ command: string; args: string[] }>,
+    registryChecks: 0,
+    created: 0,
+    published: 0,
+  };
+
+  const deps = {
+    ...baseDeps,
+    ensureCommandAvailable: async () => {
+      calls.ensuredCommands += 1;
+    },
+    readCommandText: async (command: string, args: string[]) => {
+      calls.readCommands.push({ command, args });
+      return "";
+    },
+    checkAvailability: async () => {
+      calls.registryChecks += 1;
+      return true;
+    },
+    spinner: quietSpinner,
+    createTempPackage: async () => {
+      calls.created += 1;
+      return "stub-dir";
+    },
+    publish: async () => {
+      calls.published += 1;
+    },
+  } satisfies AppDeps;
+
+  await expect(
+    runPkgClaim(["--no-input", "--name", "my-pkg", "--confirm-name", "my-pkg"], deps)
+  ).resolves.toBe(1);
+  expect(calls.ensuredCommands).toBe(0);
+  expect(calls.readCommands).toEqual([]);
+  expect(calls.registryChecks).toBe(0);
+  expect(calls.created).toBe(0);
+  expect(calls.published).toBe(0);
+  expect(getStdout()).toBe("");
+  expect(getStderr()).toContain("Error: Pass --yes to confirm publishing, or --dry-run to preview.\n");
+  expect(getStderr()).not.toContain("Preview");
+});
+
 test("runPkgClaim keeps dry-run working without --confirm-name", async () => {
   const { deps: baseDeps, getStdout, getStderr } = createTestDeps();
   const calls = {
