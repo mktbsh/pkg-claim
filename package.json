@@ -1,6 +1,6 @@
 {
   "name": "pkg-claim",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "Reserve an npm package name by publishing a minimal stub",
   "bin": {
