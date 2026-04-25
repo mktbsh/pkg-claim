@@ -7,6 +7,10 @@ Reserve an npm package name by publishing a minimal stub package.
 - Node.js 24+ or Bun
 - npm authentication (`npm login`)
 
+If your npm account requires 2FA, security-key, or browser authentication for
+publishing, `pkg-claim` lets `npm publish` use the terminal directly so you can
+complete npm's prompt during the publish step.
+
 ## Usage
 
 Run directly with `npx`:
