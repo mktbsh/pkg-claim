@@ -13,12 +13,17 @@
     "build": "tsdown",
     "test": "bun test",
     "typecheck": "bunx tsc --noEmit",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build",
+    "check": "bun test && bun run typecheck && bun run build",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "bun run check && changeset publish"
   },
   "dependencies": {
     "@clack/prompts": "1.2.0"
   },
   "devDependencies": {
+    "@changesets/cli": "2.31.0",
     "@types/bun": "latest",
     "@types/node": "latest",
     "tsdown": "latest",
