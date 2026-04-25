@@ -14,7 +14,7 @@ import { checkAvailability } from "./registry.ts";
 import { createTempPackage, removeTempPackage, type PackageMeta } from "./scaffold.ts";
 import { parseCliArgs, validatePackageName, HELP } from "./args.ts";
 
-const VERSION = "1.0.2";
+const VERSION = "1.1.0";
 
 function fatal(message: string): never {
   process.stderr.write(`Error: ${message}\n`);
