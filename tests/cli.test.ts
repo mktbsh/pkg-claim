@@ -133,6 +133,8 @@ test("runPkgClaim performs the non-interactive publish flow for a valid invocati
 test("runPkgClaim rejects non-interactive publish without --confirm-name", async () => {
   const { deps: baseDeps, getStdout, getStderr } = createTestDeps();
   const calls = {
+    readCommands: [] as Array<{ command: string; args: string[] }>,
+    registryChecks: [] as string[],
     created: 0,
     published: 0,
   };
@@ -141,10 +143,14 @@ test("runPkgClaim rejects non-interactive publish without --confirm-name", async
     ...baseDeps,
     ensureCommandAvailable: async () => {},
     readCommandText: async (command: string, args: string[]) => {
+      calls.readCommands.push({ command, args });
       if (command === "npm" && args[0] === "whoami") return "alice";
       return "";
     },
-    checkAvailability: async () => true,
+    checkAvailability: async (name: string) => {
+      calls.registryChecks.push(name);
+      return true;
+    },
     spinner: quietSpinner,
     createTempPackage: async () => {
       calls.created += 1;
@@ -156,12 +162,15 @@ test("runPkgClaim rejects non-interactive publish without --confirm-name", async
   } satisfies AppDeps;
 
   await expect(runPkgClaim(["--no-input", "--name", "my-pkg", "--yes"], deps)).resolves.toBe(1);
+  expect(calls.readCommands).toEqual([]);
+  expect(calls.registryChecks).toEqual([]);
   expect(calls.created).toBe(0);
   expect(calls.published).toBe(0);
   expect(getStdout()).toBe("");
   expect(getStderr()).toContain(
     "Error: --confirm-name <package-name> is required when publishing with --no-input.\n"
   );
+  expect(getStderr()).not.toContain("Preview");
 });
 
 test("runPkgClaim rejects publish without --confirm-name when stdin is not a TTY", async () => {
@@ -201,6 +210,8 @@ test("runPkgClaim rejects publish without --confirm-name when stdin is not a TTY
 test("runPkgClaim rejects non-interactive publish with mismatched --confirm-name", async () => {
   const { deps: baseDeps, getStdout, getStderr } = createTestDeps();
   const calls = {
+    readCommands: [] as Array<{ command: string; args: string[] }>,
+    registryChecks: [] as string[],
     created: 0,
     published: 0,
   };
@@ -209,10 +220,14 @@ test("runPkgClaim rejects non-interactive publish with mismatched --confirm-name
     ...baseDeps,
     ensureCommandAvailable: async () => {},
     readCommandText: async (command: string, args: string[]) => {
+      calls.readCommands.push({ command, args });
       if (command === "npm" && args[0] === "whoami") return "alice";
       return "";
     },
-    checkAvailability: async () => true,
+    checkAvailability: async (name: string) => {
+      calls.registryChecks.push(name);
+      return true;
+    },
     spinner: quietSpinner,
     createTempPackage: async () => {
       calls.created += 1;
@@ -229,10 +244,13 @@ test("runPkgClaim rejects non-interactive publish with mismatched --confirm-name
       deps
     )
   ).resolves.toBe(1);
+  expect(calls.readCommands).toEqual([]);
+  expect(calls.registryChecks).toEqual([]);
   expect(calls.created).toBe(0);
   expect(calls.published).toBe(0);
   expect(getStdout()).toBe("");
   expect(getStderr()).toContain("Error: --name and --confirm-name must match exactly.\n");
+  expect(getStderr()).not.toContain("Preview");
 });
 
 test("runPkgClaim keeps dry-run working without --confirm-name", async () => {

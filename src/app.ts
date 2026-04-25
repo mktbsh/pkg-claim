@@ -199,6 +199,18 @@ export async function runPkgClaim(argv: string[], deps: AppDeps = {}): Promise<n
     name = input as string;
   }
 
+  try {
+    requireNonInteractivePublishConfirmation({
+      name,
+      confirmName: args.confirmName,
+      dryRun: args.dryRun,
+      noInput: args.noInput,
+      isInteractive,
+    });
+  } catch (err) {
+    return writeError(resolvedDeps.stderr, (err as Error).message);
+  }
+
   if (!args.dryRun) {
     try {
       await getNpmIdentity(createReadExecutor(resolvedDeps));
@@ -295,18 +307,6 @@ export async function runPkgClaim(argv: string[], deps: AppDeps = {}): Promise<n
       resolvedDeps.stderr,
       "Pass --yes to confirm publishing, or --dry-run to preview."
     );
-  }
-
-  try {
-    requireNonInteractivePublishConfirmation({
-      name,
-      confirmName: args.confirmName,
-      dryRun: args.dryRun,
-      noInput: args.noInput,
-      isInteractive,
-    });
-  } catch (err) {
-    return writeError(resolvedDeps.stderr, (err as Error).message);
   }
 
   if (isInteractive) {
