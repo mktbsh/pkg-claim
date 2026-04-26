@@ -13,6 +13,14 @@
 		"access": "public",
 		"registry": "https://registry.npmjs.org/"
 	},
+  "repository": {
+		"type": "git",
+		"url": "git+https://github.com/mktbsh/pkg-claim.git"
+	},
+	"homepage": "https://github.com/mktbsh/pkg-claim#readme",
+	"bugs": {
+		"url": "https://github.com/mktbsh/pkg-claim/issues"
+	},
   "scripts": {
     "build": "tsdown",
     "test": "bun test",
